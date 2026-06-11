@@ -167,9 +167,30 @@
 
 <script>
 const TAX=0.13, FRUST=0.80;
+const STORAGE_DIAS='painel_dias';
+const STORAGE_CFG='painel_cfg';
+
+function salvar(){
+  try{
+    localStorage.setItem(STORAGE_DIAS, JSON.stringify(dias));
+    localStorage.setItem(STORAGE_CFG, JSON.stringify(cfg));
+  }catch(e){}
+}
+
+function carregar(){
+  try{
+    const d=localStorage.getItem(STORAGE_DIAS);
+    const c=localStorage.getItem(STORAGE_CFG);
+    if(d){ const parsed=JSON.parse(d); if(Array.isArray(parsed)) dias=parsed; }
+    if(c){ const parsed=JSON.parse(c); if(parsed && typeof parsed==='object') cfg=parsed; }
+  }catch(e){}
+}
+
 let cfg={fixo:800, commPct:5, niveis:[{meta:3000,bonus:50},{meta:4000,bonus:100},{meta:5000,bonus:200}]};
 let dias=Array.from({length:31},(_,i)=>({dia:i+1,inv:0,fat:0,leads:0,vendas:0}));
 let chartInst=null;
+
+carregar();
 
 const brl=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=v=>(v*100).toFixed(1)+'%';
@@ -502,7 +523,7 @@ function updateHeader(){
   el.textContent=fat>0?`Faturamento acumulado: ${brl(fat)} · ${n} dia${n!==1?'s':''} lançado${n!==1?'s':''}`:'Mês atual · Nenhum dado lançado';
 }
 
-function upd(i,f,v){dias[i][f]=parseFloat(v)||0;refreshAll();}
+function upd(i,f,v){dias[i][f]=parseFloat(v)||0;salvar();refreshAll();}
 
 function show(name,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -519,6 +540,7 @@ function refreshAll(){
   if(active==='s-total') renderTotal();
   if(active==='s-comissao') renderComissao();
   updateHeader();
+  salvar();
 }
 
 renderDias(); renderSemanas(); renderConfig();
